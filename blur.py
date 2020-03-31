@@ -4,9 +4,12 @@ from PIL import Image
 
 IMAGE_DIR = 'images/'
 
+def show_img(title, img, show):
+	if show:
+		cv2.imshow(title, img)
 
 # motion blur algorithm
-def horizontal_motion_blur(orig_img):
+def iterative_blur(orig_img):
 	print('horizontal motion blur!')
 	new_img = orig_img
 
@@ -16,16 +19,39 @@ def horizontal_motion_blur(orig_img):
 		for j in range(orig_img.shape[1]):
 			N = N-1 if (j + N > orig_img.shape[1]) else N
 			new_img[i,j] = np.mean(new_img[i][j:j+N])
-	print(new_img[0,0:3])
+	return new_img, N
+
+
+def blur(orig_img):
+	flattened_img = orig_img.flatten()
+	L = flattened_img.shape[0]
+	N = int(round(0.1 * orig_img.shape[0], 0))
+
+	# mask (A)
+	mask = np.zeros((L, L))
+	for r, row in enumerate(mask[0:-N]):
+		row[r:r+N] = [round(1/N, 2)]*N
+
+	# blurred img = A * flattened_img
+	print('starting blurring')
+	blurred_img = np.matmul(mask, flattened_img)
+	blurred_img = blurred_img.reshape(orig_img.shape)
+	cv2.imwrite('blurred_img.png', blurred_img)
+
+	# normalize img to [0,1]
+	blurred_img = (
+		blurred_img - blurred_img.min()) / (blurred_img.max()-blurred_img.min())
+	return blurred_img, mask
 
 
 # read img
-img_addr = IMAGE_DIR + 'toronto.png'
-img = cv2.imread(img_addr, cv2.IMREAD_GRAYSCALE) # bnw (1 channel)
+img1 = IMAGE_DIR + 'turtle.png'
+img = cv2.imread(img1, cv2.IMREAD_GRAYSCALE) # bnw (1 channel)
 img = np.array(img)
-cv2.imshow('input img',img)
-blurred_img = horizontal_motion_blur(img)
+show_img('input', img, False)
 
+# motion blurr
+blurred_img, mask = blur(img)
+show_img('blurred', blurred_img, True)
 
-# close CV2 windows with 'q'
 cv2.waitKey(0)
