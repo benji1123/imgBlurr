@@ -6,24 +6,15 @@ from scipy.linalg import solve
 import LU
 import time, sys
 
-WRITE = False
-
-'''
-helper
-'''
-def show_img(title, img, show):
-	if show: cv2.imshow(title, img)
-
 
 '''
 masks must be applied 
 to flattened-images
 '''
 def flatten_mult(mask, img):
-	flattened_img = img.flatten()
-	result = np.matmul(mask, flattened_img)
+	result = np.matmul(mask, img)
 	# restore image-dimensions
-	return result.reshape(img.shape)
+	return result
 
 
 '''
@@ -31,8 +22,7 @@ apply horizontal
 motion-blur to img
 '''
 def blur(orig_img):
-	x = orig_img.flatten()
-	L = x.shape[0]
+	L = orig_img.shape[0]
 	N = int(round(0.1 * orig_img.shape[0], 0))
 	_n = N
 	# create mask
@@ -55,8 +45,7 @@ focus-blur
 on an img
 '''
 def focusblur(orig_img):
-	_img = orig_img.flatten()
-	L = _img.shape[0]
+	L = orig_img.shape[0]
 	N = int(round(0.1 * orig_img.shape[0], 0))
 	_n = 0
 
@@ -82,11 +71,12 @@ def focusblur(orig_img):
 	# blur img
 	blurred_img = flatten_mult(mask, orig_img)
 	if WRITE:
-		cv2.imwrite('images/blurred_img.png', blurred_img)
-	# normalize pixels, which is required in cv2.imshow()
+		cv2.imwrite('images/focusblur_img.png', blurred_img)
+	# normalize pixels for cv2.imshow()
 	blurred_img = (blurred_img-blurred_img.min())/(blurred_img.max()-blurred_img.min())
 	
 	return blurred_img, mask
+
 
 
 '''
@@ -100,14 +90,17 @@ def unblur(blurred_img, mask):
 		cv2.imwrite('images/unblurred_img.png', unblurred_img*255)
 	return unblurred_img
 
-
-
 # .................... demo ....................
 
-img = 'images/turtle.png' 	# 100 x 100
+img1 = 'images/offee.jpg'  # 200 x 200
+img2 = 'images/turtle.png'  # 100 x 100
+img3 = 'images/toronto.png' # 360 x 254
 
+
+
+img = img2
 img = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
-blurred_img, mask = blur(img)
+blurred_img, mask = focusblur(img)
 unblurred_img = unblur(blurred_img, mask)
 
 # display
