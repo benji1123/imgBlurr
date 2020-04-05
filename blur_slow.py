@@ -2,8 +2,9 @@ import numpy as np
 import cv2
 from PIL import Image
 from os import path
-import LU
 import time, sys
+
+import LU # see LU.py
 
 WRITE = True
 
@@ -71,10 +72,10 @@ def focusblur(orig_img):
 
 	# blur img
 	blurred_img = flatten_mult(mask, orig_img)
-	if WRITE:
-		cv2.imwrite('images/blurred_img.png', blurred_img)
 	# normalize pixels, which is required in cv2.imshow()
 	blurred_img = (blurred_img-blurred_img.min())/(blurred_img.max()-blurred_img.min())
+	if WRITE:
+		cv2.imwrite('images/blurred_img.png', blurred_img*255)
 	return blurred_img, mask
 
 
@@ -88,16 +89,26 @@ def unblur(blurred_img, mask):
 	unblurred_img = flatten_mult(inv_mask, blurred_img)
 	if WRITE:
 		cv2.imwrite('images/unblurred_img.png', unblurred_img*255)
+	value = 0.1 #whatever value you want to add
+	cv2.add(unblurred_img[:,:], value, unblurred_img[:,:])
 	return unblurred_img
 
 
 # .................... demo ....................
 
-img1 = 'images/turtle.png' 	# 100 x 100
-img = np.array(cv2.imread(img1, cv2.IMREAD_GRAYSCALE))
-# img = np.random.randint(255, size=(20, 20))
+img = np.array(cv2.imread('images/turtle.png', cv2.IMREAD_GRAYSCALE))
+# img = np.random.rand(20,20)
+# ......... Choose one................
+decision = input("Choose an option:\n[1] Motion Blur\n[2] Out of focus blur:\n")
+if decision == '2':
+	print('out of focus...')
+	blurred_img, mask = focusblur(img)	
+else:		
+	print('motion blur...')			 
+	blurred_img, mask = blur(img)							
+# ......... Choose one................
 
-blurred_img, mask = blur(img)
+
 print('mask: ', mask.shape)
 unblurred_img = unblur(blurred_img, mask)
 

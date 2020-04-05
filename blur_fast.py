@@ -1,10 +1,10 @@
 import numpy as np
 import cv2
 from PIL import Image
-from os import path
-import LU
 import time, sys
 from matplotlib import pyplot as plt
+
+import LU # see LU.py
 
 
 '''
@@ -69,8 +69,7 @@ def focusblur(orig_img):
 	# blur img
 	blurred_img = flatten_mult(mask, orig_img)
 	# normalize pixels for cv2.imshow()
-	blurred_img = (blurred_img-blurred_img.min())/(blurred_img.max()-blurred_img.min())
-	
+	blurred_img = (blurred_img-blurred_img.min())/(blurred_img.max()-blurred_img.min())	
 	return blurred_img, mask
 
 
@@ -82,6 +81,8 @@ given the mask
 def unblur(blurred_img, mask):
 	inv_mask = LU.solve(mask, np.identity(mask.shape[0]))
 	unblurred_img = flatten_mult(inv_mask, blurred_img)
+	value = 0.1 #whatever value you want to add
+	cv2.add(unblurred_img[:,:], value, unblurred_img[:,:])
 	return unblurred_img
 
 

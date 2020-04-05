@@ -68,6 +68,7 @@ given A, B
 '''
 def solve(A, b):
     L, U = lu(A)
+    print('Solving X^-1...')
     y = solve_Y(L,b)
     x = solve_X(U,y)
     return x
