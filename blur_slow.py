@@ -2,18 +2,10 @@ import numpy as np
 import cv2
 from PIL import Image
 from os import path
-from scipy.linalg import solve
 import LU
 import time, sys
 
-WRITE = False
-
-'''
-helper
-'''
-def show_img(title, img, show):
-	if show: cv2.imshow(title, img)
-
+WRITE = True
 
 '''
 masks must be applied 
@@ -46,7 +38,6 @@ def blur(orig_img):
 		cv2.imwrite('images/blurred_img.png', blurred_img)
 	# normalize pixels, which is required in cv2.imshow()
 	blurred_img = (blurred_img-blurred_img.min())/(blurred_img.max()-blurred_img.min())
-	
 	return blurred_img, mask
 
 
@@ -73,7 +64,6 @@ def focusblur(orig_img):
 	for r in range(N):
 		_n -= 1
 		mask[r][:r+1] = vec[_n:]
-
 	_n = 0
 	for r in range(N, mask.shape[0]):
 		if (r+(N-_n)) > L: _n += 1
@@ -85,7 +75,6 @@ def focusblur(orig_img):
 		cv2.imwrite('images/blurred_img.png', blurred_img)
 	# normalize pixels, which is required in cv2.imshow()
 	blurred_img = (blurred_img-blurred_img.min())/(blurred_img.max()-blurred_img.min())
-	
 	return blurred_img, mask
 
 
@@ -94,20 +83,22 @@ unblur an image
 given the mask
 '''
 def unblur(blurred_img, mask):
-	inv_mask = LU.solve(mask, np.identity(blurred_img.shape[0]))
+	inv_mask = LU.solve(mask, np.identity(mask.shape[0]))
+	np.save('inv_mask.npy', inv_mask)
 	unblurred_img = flatten_mult(inv_mask, blurred_img)
 	if WRITE:
 		cv2.imwrite('images/unblurred_img.png', unblurred_img*255)
 	return unblurred_img
 
 
-
 # .................... demo ....................
 
-img = 'images/turtle.png' 	# 100 x 100
+img1 = 'images/turtle.png' 	# 100 x 100
+img = np.array(cv2.imread(img1, cv2.IMREAD_GRAYSCALE))
+# img = np.random.randint(255, size=(20, 20))
 
-img = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
 blurred_img, mask = blur(img)
+print('mask: ', mask.shape)
 unblurred_img = unblur(blurred_img, mask)
 
 # display

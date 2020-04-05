@@ -2,9 +2,9 @@ import numpy as np
 import cv2
 from PIL import Image
 from os import path
-from scipy.linalg import solve
 import LU
 import time, sys
+from matplotlib import pyplot as plt
 
 
 '''
@@ -32,8 +32,6 @@ def blur(orig_img):
 		row[r:r+_n] = [round(1/N, 2)]*_n
 	# blur image using the mask
 	blurred_img = flatten_mult(mask, orig_img)
-	if WRITE:
-		cv2.imwrite('images/blurred_img.png', blurred_img)
 	# normalize pixels, which is required in cv2.imshow()
 	blurred_img = (blurred_img-blurred_img.min())/(blurred_img.max()-blurred_img.min())
 	
@@ -70,8 +68,6 @@ def focusblur(orig_img):
 
 	# blur img
 	blurred_img = flatten_mult(mask, orig_img)
-	if WRITE:
-		cv2.imwrite('images/focusblur_img.png', blurred_img)
 	# normalize pixels for cv2.imshow()
 	blurred_img = (blurred_img-blurred_img.min())/(blurred_img.max()-blurred_img.min())
 	
@@ -84,26 +80,31 @@ unblur an image
 given the mask
 '''
 def unblur(blurred_img, mask):
-	inv_mask = LU.solve(mask, np.identity(blurred_img.shape[0]))
+	inv_mask = LU.solve(mask, np.identity(mask.shape[0]))
 	unblurred_img = flatten_mult(inv_mask, blurred_img)
-	if WRITE:
-		cv2.imwrite('images/unblurred_img.png', unblurred_img*255)
 	return unblurred_img
+
+
+def test_img(img_path):
+	img = np.array(cv2.imread(img_path, cv2.IMREAD_GRAYSCALE))
+	blurred_img, mask = blur(img)
+	unblurred_img = unblur(blurred_img, mask)
+	return np.hstack((img/256, blurred_img, unblurred_img))
 
 # .................... demo ....................
 
-img1 = 'images/offee.jpg'  # 200 x 200
-img2 = 'images/turtle.png'  # 100 x 100
-img3 = 'images/toronto.png' # 360 x 254
 
+			# 200 x 200				100x100				360 x 254
+imgs = ['images/coffee.jpg', 'images/turtle.png', 'images/toronto.png']
 
+start = time.time()
+demo1 = test_img(imgs[0])
+demo2 = test_img(imgs[1])
+demo3 = test_img(imgs[2])
+print("\n\nelapsed: {} s\n\n".format(str(time.time() - start)))
 
-img = img2
-img = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
-blurred_img, mask = focusblur(img)
-unblurred_img = unblur(blurred_img, mask)
-
-# display
-merged = np.hstack((img/256, blurred_img, unblurred_img))
-cv2.imshow('input, blurred, unblurred', merged)
-cv2.waitKey(0)
+fig, axs = plt.subplots(3, 1)
+axs[0].imshow(demo1, cmap='gray')
+axs[1].imshow(demo2, cmap='gray')
+axs[2].imshow(demo3, cmap='gray')
+plt.show()

@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.linalg import solve
 import sys, time
 
 
@@ -72,8 +71,3 @@ def solve(A, b):
     y = solve_Y(L,b)
     x = solve_X(U,y)
     return x
-
-
-# Sources
-# https://tutorialspoint.dev/computer-science/engineering-mathematics/doolittle-algorithm-lu-decomposition
-# https://ideone.com/2mhhf7
